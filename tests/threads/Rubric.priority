@@ -1,0 +1,7 @@
+Functionality of priority scheduler:
+6	priority-change
+6	priority-preempt
+
+6	priority-fifo
+6	priority-sema
+6	priority-condvar
