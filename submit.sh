@@ -38,15 +38,32 @@ fi
 
 echo -e "${GREEN}[INFO] Git user: $name <$email>${NC}"
 
-# Step 3: Stage all changes
+# Step 3: Pull latest changes to avoid conflicts
+echo -e "${GREEN}[INFO] Pulling latest changes from remote...${NC}"
+if git diff --quiet && git diff --cached --quiet; then
+  # No local changes, safe to pull
+  git pull --rebase
+else
+  echo -e "${GREEN}[INFO] Local changes detected. Stashing temporarily...${NC}"
+  git stash push -m "auto-temp-stash"
+  if git pull --rebase; then
+    echo -e "${GREEN}[INFO] Pull completed. Restoring local changes...${NC}"
+    git stash pop || true
+  else
+    echo -e "${RED}[ERROR] Failed to pull latest changes. Please resolve conflicts manually.${NC}"
+    exit 1
+  fi
+fi
+
+# Step 4: Stage all changes
 git add -A
 echo -e "${GREEN}[INFO] All changes staged.${NC}"
 
-# Step 4: Check if anything is staged
+# Step 5: Check if anything is staged
 if git diff --cached --quiet; then
   echo -e "${GREEN}[INFO] No changes to commit.${NC}"
 else
-  # Step 5: Get commit message
+  # Step 6: Get commit message
   COMMIT_MSG="${1:-$DEFAULT_MSG}"  # Use input if provided, else default
 
   if git commit -m "$COMMIT_MSG"; then
@@ -57,7 +74,7 @@ else
   fi
 fi
 
-# Step 6: Push
+# Step 7: Push
 echo -e "${GREEN}[INFO] Pushing to remote repository...${NC}"
 if git push; then
   echo -e "${GREEN}[SUCCESS] Submission pushed successfully!${NC}"
@@ -65,4 +82,3 @@ else
   echo -e "${RED}[ERROR] Push failed. Please check your remote settings or network.${NC}"
   exit 1
 fi
-
